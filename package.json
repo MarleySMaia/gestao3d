@@ -1,0 +1,15 @@
+{
+  "name": "gestao3d",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Gestão de pedidos de impressão 3D, pagamentos e calculadora de precificação (local)",
+  "workspaces": ["server", "client"],
+  "scripts": {
+    "dev": "concurrently -k -n API,WEB -c cyan,magenta \"npm run dev -w server\" \"npm run dev -w client\"",
+    "build": "npm run build -w client",
+    "start": "npm run build && npm run start -w server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
