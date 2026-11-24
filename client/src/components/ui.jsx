@@ -16,17 +16,31 @@ export function Modal({ open, onClose, title, children, footer, size = 'lg', clo
   if (!open) return null;
   const widths = { sm: 'max-w-md', md: 'max-w-2xl', lg: 'max-w-4xl', xl: 'max-w-6xl' };
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/75 p-2 backdrop-blur-sm sm:p-6"
+    <div
+      className={`fixed inset-0 z-50 flex justify-center bg-black/75 backdrop-blur-sm sm:items-center sm:p-6 ${
+        size === 'sm' ? 'items-end p-0 sm:p-6' : 'items-stretch'
+      }`}
       onMouseDown={(e) => closeOnBackdrop && e.target === e.currentTarget && onClose?.()}>
-      <div className={`relative my-auto w-full ${widths[size]} rounded-2xl border border-zinc-700 bg-zinc-900 shadow-2xl`}>
-        <div className="flex items-center justify-between border-b border-zinc-800 px-5 py-4">
-          <h2 className="text-lg font-bold text-white">{title}</h2>
-          <button onClick={onClose} className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-white" aria-label="Fechar">
-            <X size={20} />
+      <div
+        role="dialog"
+        aria-modal="true"
+        className={`relative flex w-full ${widths[size]} flex-col overflow-hidden border-zinc-700 bg-zinc-900 shadow-2xl sm:max-h-[calc(100dvh-3rem)] sm:rounded-2xl sm:border ${
+          size === 'sm'
+            ? 'max-h-[90dvh] rounded-t-2xl border-t'
+            : 'h-dvh sm:h-auto'
+        }`}>
+        <div className="flex shrink-0 items-center justify-between gap-3 border-b border-zinc-800 px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:py-4">
+          <h2 className="truncate text-lg font-bold text-white">{title}</h2>
+          <button onClick={onClose} className="-mr-1 shrink-0 rounded-lg p-2 text-zinc-400 hover:bg-zinc-800 hover:text-white" aria-label="Fechar">
+            <X size={22} />
           </button>
         </div>
-        <div className="px-5 py-5">{children}</div>
-        {footer && <div className="flex flex-wrap items-center justify-end gap-2 border-t border-zinc-800 px-5 py-4">{footer}</div>}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 sm:px-5 sm:py-5">{children}</div>
+        {footer && (
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2 border-t border-zinc-800 bg-zinc-900 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:px-5 sm:py-4">
+            {footer}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -104,7 +118,7 @@ export function ToastProvider({ children }) {
   return (
     <ToastCtx.Provider value={push}>
       {children}
-      <div className="pointer-events-none fixed bottom-4 right-4 z-[60] flex flex-col gap-2">
+      <div className="pointer-events-none fixed inset-x-4 bottom-[calc(5.5rem+env(safe-area-inset-bottom))] z-[60] flex flex-col items-center gap-2 md:inset-x-auto md:right-4 md:bottom-4 md:items-end">
         {items.map((t) => (
           <div key={t.id}
             className={`pointer-events-auto flex items-center gap-2 rounded-lg border px-4 py-3 text-sm font-semibold shadow-xl ${

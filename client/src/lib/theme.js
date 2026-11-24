@@ -15,6 +15,7 @@ export function useTheme() {
   const [theme, setTheme] = useState(getInitialTheme);
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
+    document.querySelector('meta[name=theme-color]')?.setAttribute('content', theme === 'light' ? '#f4f4f5' : '#09090b');
     try { localStorage.setItem(KEY, theme); } catch { /* ignore */ }
   }, [theme]);
   return [theme, () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))];

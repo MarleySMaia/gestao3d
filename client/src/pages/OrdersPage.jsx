@@ -20,12 +20,14 @@ function SummaryCard({ icon, label, value, sub, tone, onClick, active }) {
   };
   return (
     <button type="button" onClick={onClick}
-      className={`card flex items-center gap-4 border-l-4 p-4 text-left transition hover:bg-zinc-800/60 ${tones[tone]} ${active ? 'ring-2 ring-amber-400/60' : ''}`}>
-      <div className="rounded-xl bg-zinc-950 p-3">{icon}</div>
-      <div className="min-w-0">
-        <div className="text-xs font-bold uppercase tracking-wide text-zinc-400">{label}</div>
-        <div className="truncate font-mono text-2xl font-black text-white tabular-nums">{value}</div>
-        {sub && <div className="text-xs text-zinc-500">{sub}</div>}
+      className={`card flex min-w-0 items-center gap-3 border-l-4 p-3 text-left transition hover:bg-zinc-800/60 active:scale-[0.98] sm:gap-4 sm:p-4 ${tones[tone]} ${active ? 'ring-2 ring-amber-400/60' : ''}`}>
+      <div className="hidden shrink-0 rounded-xl bg-zinc-950 p-3 sm:block">{icon}</div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-1.5 truncate text-[11px] font-bold uppercase tracking-wide text-zinc-400 sm:text-xs">
+          <span className="sm:hidden [&_svg]:h-3.5 [&_svg]:w-3.5">{icon}</span>{label}
+        </div>
+        <div className="truncate font-mono text-lg font-black text-white tabular-nums sm:text-2xl">{value}</div>
+        {sub && <div className="truncate text-[11px] text-zinc-500 sm:text-xs">{sub}</div>}
       </div>
     </button>
   );
@@ -210,7 +212,7 @@ export default function OrdersPage({ newOrderPrefill, clearPrefill }) {
   return (
     <div className="space-y-5">
       {/* cards */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-2.5 sm:gap-3 xl:grid-cols-4">
         <SummaryCard tone="amber" icon={<Wallet className="text-amber-300" />} label="Total a receber"
           value={money(summary?.receivable)} sub={`${summary?.receivable_count ?? 0} pedido(s) pendente(s)`}
           active={payment === 'areceber'} onClick={() => { setPayment(payment === 'areceber' ? 'todos' : 'areceber'); setStatus('todos'); }} />
@@ -225,14 +227,14 @@ export default function OrdersPage({ newOrderPrefill, clearPrefill }) {
       </div>
 
       {/* filtros */}
-      <div className="card flex flex-col gap-3 p-3 lg:flex-row lg:items-center">
+      <div className="card flex flex-col gap-2.5 p-2.5 sm:gap-3 sm:p-3 lg:flex-row lg:items-center">
         <div className="relative flex-1">
           <Search size={18} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" />
           <input className="input pl-10" placeholder="Buscar por cliente, peça ou nº do pedido…" value={q} onChange={(e) => setQ(e.target.value)} />
         </div>
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="grid grid-cols-2 items-center gap-2 md:flex md:flex-wrap">
           <Filter size={16} className="hidden text-zinc-500 lg:block" />
-          <select className="input w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
+          <select className="input min-w-0 md:w-auto" value={status} onChange={(e) => setStatus(e.target.value)}>
             <option value="todos">Todos os status</option>
             <option value="abertos">Em aberto (não entregues)</option>
             <option value="producao">Em produção</option>
@@ -241,17 +243,17 @@ export default function OrdersPage({ newOrderPrefill, clearPrefill }) {
               {STATUSES.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
             </optgroup>
           </select>
-          <select className="input w-auto" value={payment} onChange={(e) => setPayment(e.target.value)}>
+          <select className="input min-w-0 md:w-auto" value={payment} onChange={(e) => setPayment(e.target.value)}>
             <option value="todos">Todo pagamento</option>
             <option value="areceber">A receber</option>
             {PAYMENTS.map((s) => <option key={s.value} value={s.value}>{s.label}</option>)}
           </select>
           {hasFilter && (
-            <button className="btn btn-ghost" onClick={() => { setQ(''); setStatus('todos'); setPayment('todos'); }}>
+            <button className="btn btn-ghost col-span-2" onClick={() => { setQ(''); setStatus('todos'); setPayment('todos'); }}>
               <X size={16} /> Limpar
             </button>
           )}
-          <button className="btn btn-primary" onClick={() => setModal({ open: true, order: null })} title="Atalho: N">
+          <button className="btn btn-primary hidden md:inline-flex" onClick={() => setModal({ open: true, order: null })} title="Atalho: N">
             <Plus size={18} /> Novo pedido
           </button>
         </div>
@@ -301,11 +303,11 @@ export default function OrdersPage({ newOrderPrefill, clearPrefill }) {
         {!filtered.length && <EmptyState loading={loading} hasFilter={hasFilter} onNew={() => setModal({ open: true, order: null })} />}
       </div>
 
-      {/* cards (mobile/tablet) */}
-      <div className="space-y-3 lg:hidden">
+      {/* cards (celular: 1 coluna / tablet: 2 colunas) */}
+      <div className="grid gap-3 md:grid-cols-2 lg:hidden">
         {filtered.map((o) => (
-          <div key={o.id} className={`card p-3 ${o.status === 'cancelado' ? 'opacity-50' : ''}`}>
-            <div className="flex gap-3">
+          <div key={o.id} className={`card flex flex-col p-3 ${o.status === 'cancelado' ? 'opacity-50' : ''}`}>
+            <div className="mb-3 flex gap-3">
               <Thumb order={o} onZoom={setZoom} size="h-20 w-20" />
               <button className="min-w-0 flex-1 text-left" onClick={() => setModal({ open: true, order: o })}>
                 <div className="font-bold text-white"><span className="mr-1 font-mono text-sm text-zinc-500">#{o.id}</span>{o.title}</div>
@@ -313,7 +315,7 @@ export default function OrdersPage({ newOrderPrefill, clearPrefill }) {
                 <div className="mt-1"><ClientCell order={o} /></div>
               </button>
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="mt-auto grid grid-cols-2 gap-3 border-t border-zinc-800 pt-3">
               <DueDate order={o} />
               <PaymentCell order={o} onChange={quickUpdate} />
               <div className="col-span-2"><StatusSelect order={o} onChange={quickUpdate} /></div>
@@ -321,9 +323,18 @@ export default function OrdersPage({ newOrderPrefill, clearPrefill }) {
           </div>
         ))}
         {!filtered.length && (
-          <div className="card"><EmptyState loading={loading} hasFilter={hasFilter} onNew={() => setModal({ open: true, order: null })} /></div>
+          <div className="card md:col-span-2"><EmptyState loading={loading} hasFilter={hasFilter} onNew={() => setModal({ open: true, order: null })} /></div>
         )}
       </div>
+
+      {/* botão flutuante "novo pedido" (celular) */}
+      <button
+        type="button"
+        aria-label="Novo pedido"
+        onClick={() => setModal({ open: true, order: null })}
+        className="fixed right-4 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-30 flex h-14 w-14 items-center justify-center rounded-full bg-amber-400 text-on-primary shadow-xl shadow-black/40 transition active:scale-95 md:hidden">
+        <Plus size={28} strokeWidth={2.5} />
+      </button>
 
       <OrderModal
         open={modal.open}

@@ -29,10 +29,13 @@ function FilamentRow({ f, onSaved, onDelete }) {
   if (!edit) {
     return (
       <tr className="border-b border-zinc-800/80">
-        <td className="px-3 py-2.5 font-bold text-white">{f.name}</td>
-        <td className="px-3 py-2.5 text-zinc-400">{f.brand || '—'}</td>
+        <td className="px-3 py-2.5 font-bold text-white">
+          {f.name}
+          {f.brand && <div className="text-xs font-normal text-zinc-400 sm:hidden">{f.brand}</div>}
+        </td>
+        <td className="hidden px-3 py-2.5 text-zinc-400 sm:table-cell">{f.brand || '—'}</td>
         <td className="px-3 py-2.5 text-right font-mono font-bold text-amber-300">{money(f.price_kg)}</td>
-        <td className="px-3 py-2.5 text-right">
+        <td className="whitespace-nowrap px-3 py-2.5 text-right">
           <button className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-amber-300" onClick={() => setEdit(true)} title="Editar"><Pencil size={16} /></button>
           <button className="rounded-lg p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-red-400" onClick={() => onDelete(f)} title="Excluir"><Trash2 size={16} /></button>
         </td>
@@ -42,8 +45,11 @@ function FilamentRow({ f, onSaved, onDelete }) {
   const onKey = (e) => e.key === 'Enter' && save();
   return (
     <tr className="border-b border-zinc-800/80 bg-amber-400/5">
-      <td className="px-2 py-2"><input className="input" placeholder="PLA, PETG, ABS, TPU…" value={v.name} autoFocus onKeyDown={onKey} onChange={(e) => setV({ ...v, name: e.target.value })} /></td>
-      <td className="px-2 py-2"><input className="input" placeholder="Cor / marca" value={v.brand} onKeyDown={onKey} onChange={(e) => setV({ ...v, brand: e.target.value })} /></td>
+      <td className="space-y-2 px-2 py-2">
+        <input className="input" placeholder="PLA, PETG, ABS, TPU…" value={v.name} autoFocus onKeyDown={onKey} onChange={(e) => setV({ ...v, name: e.target.value })} />
+        <input className="input sm:hidden" placeholder="Cor / marca" value={v.brand} onKeyDown={onKey} onChange={(e) => setV({ ...v, brand: e.target.value })} />
+      </td>
+      <td className="hidden px-2 py-2 sm:table-cell"><input className="input" placeholder="Cor / marca" value={v.brand} onKeyDown={onKey} onChange={(e) => setV({ ...v, brand: e.target.value })} /></td>
       <td className="px-2 py-2"><NumInput prefix="R$" value={v.price_kg} onKeyDown={onKey} onChange={(x) => setV({ ...v, price_kg: x })} /></td>
       <td className="whitespace-nowrap px-2 py-2 text-right">
         <button className="rounded-lg p-1.5 text-emerald-300 hover:bg-zinc-800" onClick={save} title="Salvar"><Check size={18} /></button>
@@ -113,7 +119,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black text-white"><Settings2 className="text-amber-400" /> Configurações e custos base</h1>
+          <h1 className="flex items-center gap-2 text-xl font-black text-white sm:text-2xl"><Settings2 className="text-amber-400" /> Configurações e custos base</h1>
           <p className="text-sm text-zinc-400">Estes valores alimentam a calculadora automaticamente.</p>
         </div>
       </div>
@@ -125,13 +131,13 @@ export default function SettingsPage() {
           <button className="btn btn-ghost py-1.5" onClick={() => setAdding(true)} disabled={adding}><Plus size={16} /> Adicionar</button>
         </div>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[520px] text-sm">
+          <table className="w-full text-sm">
             <thead className="text-left text-xs font-bold uppercase tracking-wide text-zinc-500">
               <tr className="border-b border-zinc-800">
                 <th className="px-3 py-2">Nome / Tipo</th>
-                <th className="px-3 py-2">Cor / Marca</th>
-                <th className="w-44 px-3 py-2 text-right">Preço por kg</th>
-                <th className="w-24 px-3 py-2"></th>
+                <th className="hidden px-3 py-2 sm:table-cell">Cor / Marca</th>
+                <th className="w-36 px-3 py-2 text-right sm:w-44">Preço/kg</th>
+                <th className="w-20 px-3 py-2 sm:w-24"></th>
               </tr>
             </thead>
             <tbody>
@@ -154,8 +160,8 @@ export default function SettingsPage() {
         </section>
       </div>
 
-      <div className={`sticky bottom-4 flex justify-end transition ${dirty ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
-        <button className="btn btn-primary px-6 py-3 text-base shadow-2xl shadow-amber-500/20" onClick={saveSettings}>
+      <div className={`sticky bottom-[calc(5rem+env(safe-area-inset-bottom))] flex justify-end md:bottom-4 transition ${dirty ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
+        <button className="btn btn-primary w-full px-6 py-3 text-base shadow-2xl shadow-amber-500/20 md:w-auto" onClick={saveSettings}>
           <Save size={18} /> Salvar configurações
         </button>
       </div>

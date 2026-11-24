@@ -67,7 +67,7 @@ export default function ImageField({ image, onChange, onUploaded, onZoom }) {
         onDragOver={(e) => { e.preventDefault(); setDrag(true); }}
         onDragLeave={() => setDrag(false)}
         onDrop={onDrop}
-        className={`group relative flex aspect-[4/3] w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed outline-none transition
+        className={`group relative flex aspect-[16/9] w-full sm:aspect-[4/3] items-center justify-center overflow-hidden rounded-xl border-2 border-dashed outline-none transition
           focus:border-amber-400 ${drag ? 'border-amber-400 bg-amber-400/10' : 'border-zinc-700 bg-zinc-950'}
           ${flash ? 'ring-4 ring-emerald-400/60' : ''}`}
       >
@@ -95,11 +95,14 @@ export default function ImageField({ image, onChange, onUploaded, onZoom }) {
           <button type="button" onClick={() => inputRef.current?.click()}
             className="flex h-full w-full flex-col items-center justify-center gap-2 p-4 text-center text-zinc-400 hover:text-zinc-200">
             <ImagePlus size={40} className="text-zinc-600 group-hover:text-amber-400" />
-            <span className="text-sm font-semibold">Clique, arraste uma imagem</span>
-            <span className="flex items-center gap-1.5 rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1 text-xs font-bold text-amber-300">
+            {/* mouse/teclado */}
+            <span className="text-sm font-semibold pointer-coarse:hidden">Clique, arraste uma imagem</span>
+            <span className="flex items-center gap-1.5 rounded-md border border-amber-400/40 bg-amber-400/10 px-2 py-1 text-xs font-bold text-amber-300 pointer-coarse:hidden">
               <ClipboardPaste size={14} /> ou cole um print com Ctrl + V
             </span>
-            <span className="text-[11px] text-zinc-500">Win + Shift + S no fatiador → Ctrl + V aqui</span>
+            <span className="text-[11px] text-zinc-500 pointer-coarse:hidden">Win + Shift + S no fatiador → Ctrl + V aqui</span>
+            {/* celular/tablet */}
+            <span className="hidden text-sm font-semibold pointer-coarse:inline">Toque para tirar foto ou escolher da galeria</span>
           </button>
         )}
       </div>

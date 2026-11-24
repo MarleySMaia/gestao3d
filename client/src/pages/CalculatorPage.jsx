@@ -40,7 +40,7 @@ export default function CalculatorPage({ onCreateOrder }) {
     <div className="space-y-4">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-black text-white"><CalcIcon className="text-amber-400" /> Calculadora avulsa</h1>
+          <h1 className="flex items-center gap-2 text-xl font-black text-white sm:text-2xl"><CalcIcon className="text-amber-400" /> Calculadora avulsa</h1>
           <p className="text-sm text-zinc-400">Faça um orçamento rápido. Os custos base vêm da aba Configurações.</p>
         </div>
         <div className="flex flex-wrap gap-2">
