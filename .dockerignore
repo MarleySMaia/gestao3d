@@ -1,0 +1,11 @@
+**/node_modules
+client/dist
+server/database.sqlite*
+server/uploads
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose*.yml
+*.log
+.env*

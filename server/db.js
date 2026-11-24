@@ -1,9 +1,13 @@
 import Database from 'better-sqlite3';
+import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-export const DB_PATH = path.join(__dirname, 'database.sqlite');
+// DATA_DIR permite guardar banco + imagens num volume (Docker). Padrão: pasta server/
+export const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : __dirname;
+fs.mkdirSync(DATA_DIR, { recursive: true });
+export const DB_PATH = path.join(DATA_DIR, 'database.sqlite');
 
 const db = new Database(DB_PATH);
 db.pragma('journal_mode = WAL');

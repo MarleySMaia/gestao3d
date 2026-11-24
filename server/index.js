@@ -5,10 +5,10 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import db, { DEFAULT_SETTINGS } from './db.js';
+import db, { DATA_DIR, DEFAULT_SETTINGS } from './db.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const UPLOADS = path.join(__dirname, 'uploads');
+const UPLOADS = path.join(DATA_DIR, 'uploads');
 const CLIENT_DIST = path.join(__dirname, '..', 'client', 'dist');
 const PORT = process.env.PORT || 3001;
 
@@ -119,6 +119,16 @@ function normalizeOrder(body) {
     image: body.image ? path.basename(String(body.image)) : null,
   };
 }
+
+// ---------- saúde (healthcheck do Docker) ----------
+app.get('/api/health', (req, res) => {
+  try {
+    db.prepare('SELECT 1').get();
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
 
 // ---------- settings ----------
 app.get('/api/settings', wrap((req, res) => res.json(getSettings())));
@@ -324,7 +334,20 @@ if (fs.existsSync(CLIENT_DIST)) {
   app.get(/^\/(?!api|uploads).*/, (req, res) => res.sendFile(path.join(CLIENT_DIST, 'index.html')));
 }
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n  API Gestão 3D rodando em http://localhost:${PORT}`);
+  console.log(`  Dados em: ${DATA_DIR}`);
   if (fs.existsSync(CLIENT_DIST)) console.log(`  Interface disponível em http://localhost:${PORT}\n`);
 });
+
+// desligamento limpo (docker stop): fecha conexões e o banco sem corromper o WAL
+for (const sig of ['SIGTERM', 'SIGINT']) {
+  process.on(sig, () => {
+    console.log(`\n  ${sig} recebido, encerrando...`);
+    server.close(() => {
+      db.close();
+      process.exit(0);
+    });
+    setTimeout(() => process.exit(0), 5000).unref();
+  });
+}

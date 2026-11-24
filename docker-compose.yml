@@ -1,0 +1,21 @@
+services:
+  gestao3d:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: gestao3d:latest
+    container_name: gestao3d
+    restart: unless-stopped
+    ports:
+      # porta no host (altere HOST_PORT se a 3001 já estiver em uso) : porta no container
+      - "${HOST_PORT:-3001}:3001"
+    environment:
+      TZ: ${TZ:-America/Sao_Paulo}
+    volumes:
+      # banco SQLite (database.sqlite) + imagens (uploads/) — NÃO apague este volume
+      - gestao3d-data:/data
+    stop_grace_period: 15s
+
+volumes:
+  gestao3d-data:
+    name: gestao3d-data

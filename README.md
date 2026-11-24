@@ -11,6 +11,25 @@ npm run dev      # API (porta 3001) + interface (http://localhost:5180)
 
 `npm start` gera o build do front e serve tudo direto pelo backend em http://localhost:3001.
 
+## Docker / Dockhand
+
+Imagem única (API + interface) na porta **3001**. Banco SQLite e imagens ficam em `/data`, no volume `gestao3d-data`.
+
+```bash
+docker compose up -d --build     # acesse http://IP-DO-SERVIDOR:3001
+```
+
+| Variável    | Padrão              | Para quê                                  |
+|-------------|---------------------|-------------------------------------------|
+| `HOST_PORT` | `3001`              | porta exposta no host (compose)           |
+| `TZ`        | `America/Sao_Paulo` | fuso usado em "hoje", atrasos e mês pago  |
+
+- **Dockhand:** crie um stack a partir do repositório Git apontando para `docker-compose.yml` (repo privado → informe um token do GitHub com acesso de leitura).
+- **Atualizar:** puxe o código novo e rode `docker compose up -d --build` de novo — o volume mantém os dados.
+- **Backup:** `docker run --rm -v gestao3d-data:/data -v "$PWD":/bkp alpine tar czf /bkp/gestao3d-backup.tgz -C /data .`
+- **Usar pasta do host em vez de volume:** troque `gestao3d-data:/data` por `./data:/data` e dê permissão ao usuário do container (`sudo chown -R 1000:1000 ./data`).
+- Saúde: `GET /api/health` (usado no `HEALTHCHECK` da imagem).
+
 ## Estrutura
 
 ```
