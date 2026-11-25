@@ -9,11 +9,17 @@ export function calculate(input, settings, filaments) {
   const qty = Math.max(1, Math.round(parseNum(input.quantity) || 1));
   const weight = parseNum(input.weight_g);
   const hours = parseNum(input.hours) + parseNum(input.minutes) / 60;
-  const extras = parseNum(input.extras);
-  const labor =
+  // extras e mão de obra podem ser "por peça" (padrão) ou "do pedido todo";
+  // valores do pedido todo são rateados entre as peças para compor o preço unitário
+  const extrasInformed = parseNum(input.extras);
+  const laborInformed =
     input.labor_mode === 'tempo'
       ? (parseNum(input.labor_minutes) / 60) * parseNum(settings.labor_hour)
       : parseNum(input.labor_value);
+  const extrasScope = input.extras_scope === 'pedido' ? 'pedido' : 'peca';
+  const laborScope = input.labor_scope === 'pedido' ? 'pedido' : 'peca';
+  const extras = extrasScope === 'pedido' ? extrasInformed / qty : extrasInformed;
+  const labor = laborScope === 'pedido' ? laborInformed / qty : laborInformed;
   const failPct = parseNum(input.failure_pct) / 100;
   const profitPct = parseNum(input.profit_pct) / 100;
   const feePct = Math.min(parseNum(input.fee_pct) / 100, 0.99);
@@ -37,6 +43,10 @@ export function calculate(input, settings, filaments) {
     depreciation,
     extras,
     labor,
+    extrasInformed,
+    laborInformed,
+    extrasScope,
+    laborScope,
     base,
     failureAmount: withFailure - base,
     withFailure,
@@ -56,7 +66,9 @@ export const emptyCalc = (settings = {}, filaments = []) => ({
   minutes: '',
   quantity: 1,
   extras: '',
+  extras_scope: 'peca',
   labor_mode: 'valor',
+  labor_scope: 'peca',
   labor_value: '',
   labor_minutes: '',
   failure_pct: settings.failure_pct ?? 10,

@@ -5,6 +5,29 @@ import { money, number } from '../lib/format';
 import { useData } from '../lib/store';
 import { Field, NumInput, Segmented } from './ui';
 
+/** escolhe se o valor vale para cada peça ou para o pedido todo */
+function ScopeToggle({ value, onChange }) {
+  return (
+    <Segmented
+      size="sm"
+      value={value === 'pedido' ? 'pedido' : 'peca'}
+      onChange={onChange}
+      options={[{ value: 'peca', label: 'Por peça' }, { value: 'pedido', label: 'Pedido todo' }]}
+    />
+  );
+}
+
+/** explica, com números, como o valor entra no cálculo */
+function ScopeHint({ scope, informed, qty, fallback }) {
+  let text = fallback;
+  if (informed > 0 && qty > 1) {
+    text = scope === 'pedido'
+      ? `${money(informed)} uma vez só → ${money(informed / qty)} por peça`
+      : `${money(informed)} × ${qty} peças = ${money(informed * qty)}`;
+  }
+  return <span className="mt-1 block text-xs text-zinc-500">{text}</span>;
+}
+
 function Row({ icon, label, formula, value, strong, accent }) {
   return (
     <div className={`flex items-start justify-between gap-3 py-2 ${strong ? '' : 'border-b border-zinc-800/80'}`}>
@@ -50,39 +73,48 @@ export default function Calculator({ value, onChange, onApply, applyLabel = 'Apl
               ))}
             </select>
           </Field>
-          <Field label="Peso da peça" className="col-span-2 sm:col-span-1">
+          <Field label="Peso (de 1 peça)" className="col-span-2 sm:col-span-1">
             <NumInput value={value.weight_g} onChange={set('weight_g')} suffix="g" placeholder="0" />
           </Field>
-          <Field label="Tempo de impressão" className="col-span-2 sm:col-span-1">
+          <Field label="Tempo (de 1 peça)" className="col-span-2 sm:col-span-1">
             <div className="flex gap-2">
               <NumInput value={value.hours} onChange={set('hours')} suffix="h" placeholder="0" />
               <NumInput value={value.minutes} onChange={set('minutes')} suffix="min" placeholder="0" />
             </div>
           </Field>
-          <Field label="Quantidade" className="col-span-2 sm:col-span-1">
+          <Field label="Quantidade de peças" className="col-span-2 sm:col-span-1">
             <NumInput value={value.quantity} onChange={set('quantity')} suffix="un" placeholder="1" />
           </Field>
-          <Field label="Custos extras" hint="Argolas, ímãs, parafusos, tinta, embalagem…" className="col-span-2 sm:col-span-1">
-            <NumInput value={value.extras} onChange={set('extras')} prefix="R$" placeholder="0,00" />
-          </Field>
           <div className="col-span-2 sm:col-span-1">
-            <div className="mb-1 flex items-center justify-between">
+            <div className="mb-1 flex items-center justify-between gap-2">
+              <span className="label mb-0">Custos extras</span>
+              <ScopeToggle value={value.extras_scope} onChange={set('extras_scope')} />
+            </div>
+            <NumInput value={value.extras} onChange={set('extras')} prefix="R$" placeholder="0,00" />
+            <ScopeHint scope={r.extrasScope} informed={r.extrasInformed} qty={r.qty}
+              fallback="Argolas, ímãs, parafusos, tinta, embalagem…" />
+          </div>
+          <div className="col-span-2 sm:col-span-1">
+            <div className="mb-1 flex items-center justify-between gap-2">
               <span className="label mb-0">Mão de obra / pós</span>
+              <ScopeToggle value={value.labor_scope} onChange={set('labor_scope')} />
+            </div>
+            <div className="flex gap-2">
               <Segmented
                 size="sm"
+                className="shrink-0 self-center"
                 value={value.labor_mode || 'valor'}
                 onChange={set('labor_mode')}
-                options={[{ value: 'valor', label: 'R$' }, { value: 'tempo', label: 'Tempo' }]}
+                options={[{ value: 'valor', label: 'R$' }, { value: 'tempo', label: 'min' }]}
               />
+              {value.labor_mode === 'tempo' ? (
+                <NumInput value={value.labor_minutes} onChange={set('labor_minutes')} suffix="min" placeholder="0" className="flex-1" />
+              ) : (
+                <NumInput value={value.labor_value} onChange={set('labor_value')} prefix="R$" placeholder="0,00" className="flex-1" />
+              )}
             </div>
-            {value.labor_mode === 'tempo' ? (
-              <>
-                <NumInput value={value.labor_minutes} onChange={set('labor_minutes')} suffix="min" placeholder="0" />
-                <span className="mt-1 block text-xs text-zinc-500">a {money(s.labor_hour)}/h (Configurações)</span>
-              </>
-            ) : (
-              <NumInput value={value.labor_value} onChange={set('labor_value')} prefix="R$" placeholder="0,00" />
-            )}
+            <ScopeHint scope={r.laborScope} informed={r.laborInformed} qty={r.qty}
+              fallback={value.labor_mode === 'tempo' ? `a ${money(s.labor_hour)}/h (Configurações)` : 'Lixar, pintar, montar, remover suporte…'} />
           </div>
         </div>
 
@@ -119,7 +151,7 @@ export default function Calculator({ value, onChange, onApply, applyLabel = 'Apl
 
       {/* RESUMO */}
       <div className="flex flex-col rounded-xl border border-zinc-800 bg-zinc-950 p-4">
-        <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Resumo por unidade</div>
+        <div className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Resumo por peça</div>
         <div className="text-sm">
           <Row icon={<Weight size={15} className="text-sky-400" />} label="Material"
             formula={`${money(r.priceKg)}/kg ÷ 1000 × ${number(r.weight)} g`} value={money(r.material)} />
@@ -127,8 +159,12 @@ export default function Calculator({ value, onChange, onApply, applyLabel = 'Apl
             formula={`${number(s.printer_watts)} W ÷ 1000 × ${number(r.hours)} h × ${money(s.energy_kwh)}/kWh`} value={money(r.energy)} />
           <Row icon={<Cog size={15} className="text-zinc-400" />} label="Depreciação / manutenção"
             formula={`${number(r.hours)} h × ${money(s.machine_hour)}/h`} value={money(r.depreciation)} />
-          <Row icon={<Package size={15} className="text-pink-400" />} label="Extras" value={money(r.extras)} />
-          <Row icon={<Wrench size={15} className="text-orange-400" />} label="Mão de obra" value={money(r.labor)} />
+          <Row icon={<Package size={15} className="text-pink-400" />} label="Extras"
+            formula={r.extrasScope === 'pedido' && r.extrasInformed ? `${money(r.extrasInformed)} do pedido ÷ ${r.qty} peças` : null}
+            value={money(r.extras)} />
+          <Row icon={<Wrench size={15} className="text-orange-400" />} label="Mão de obra"
+            formula={r.laborScope === 'pedido' && r.laborInformed ? `${money(r.laborInformed)} do pedido ÷ ${r.qty} peças` : null}
+            value={money(r.labor)} />
           <Row label="Custo base" value={money(r.base)} strong />
           <Row icon={<Layers size={15} className="text-red-400" />} label={`+ Margem de falha (${number(value.failure_pct)}%)`}
             formula="custo base × (1 + % falha)" value={money(r.failureAmount)} />
