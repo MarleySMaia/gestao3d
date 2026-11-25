@@ -83,16 +83,16 @@ export function NumInput({ value, onChange, prefix, suffix, className = '', ...r
   );
 }
 
-export function Segmented({ options, value, onChange, className = '', size = 'md' }) {
+export function Segmented({ options, value, onChange, className = '', size = 'md', nowrap = false }) {
   const sm = size === 'sm';
   return (
-    <div className={`inline-flex flex-wrap rounded-lg border border-zinc-700 bg-zinc-950 ${sm ? 'p-0.5' : 'p-1'} ${className}`}>
+    <div className={`inline-flex ${nowrap ? 'flex-nowrap' : 'flex-wrap'} rounded-lg border border-zinc-700 bg-zinc-950 ${sm ? 'p-0.5' : 'p-1'} ${className}`}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={`flex items-center gap-1.5 rounded-md font-semibold transition ${sm ? 'px-2 py-0.5 text-xs' : 'px-3 py-1.5 text-sm'} ${
+          className={`flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-semibold transition ${sm ? 'px-2 py-0.5 text-xs' : 'px-3 py-1.5 text-sm'} ${
             value === o.value ? 'bg-amber-400 text-on-primary' : 'text-zinc-300 hover:bg-zinc-800'
           }`}
         >

@@ -9,11 +9,26 @@ import { Field, NumInput, Segmented } from './ui';
 function ScopeToggle({ value, onChange }) {
   return (
     <Segmented
-      size="sm"
+      nowrap
+      className="shrink-0 basis-full items-stretch sm:basis-auto [&>button]:flex-1"
       value={value === 'pedido' ? 'pedido' : 'peca'}
       onChange={onChange}
       options={[{ value: 'peca', label: 'Por peça' }, { value: 'pedido', label: 'Pedido todo' }]}
     />
+  );
+}
+
+/** linha de custo adicional: título (+ ação opcional), valor + escopo lado a lado, dica embaixo */
+function CostLine({ icon, title, action, children, hint }) {
+  return (
+    <div>
+      <div className="mb-1.5 flex min-h-6 items-center justify-between gap-2">
+        <span className="flex items-center gap-1.5 whitespace-nowrap text-sm font-semibold text-zinc-200">{icon}{title}</span>
+        {action}
+      </div>
+      <div className="flex flex-wrap items-stretch gap-2">{children}</div>
+      {hint}
+    </div>
   );
 }
 
@@ -85,37 +100,44 @@ export default function Calculator({ value, onChange, onApply, applyLabel = 'Apl
           <Field label="Quantidade de peças" className="col-span-2 sm:col-span-1">
             <NumInput value={value.quantity} onChange={set('quantity')} suffix="un" placeholder="1" />
           </Field>
-          <div className="col-span-2 sm:col-span-1">
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <span className="label mb-0">Custos extras</span>
-              <ScopeToggle value={value.extras_scope} onChange={set('extras_scope')} />
-            </div>
-            <NumInput value={value.extras} onChange={set('extras')} prefix="R$" placeholder="0,00" />
-            <ScopeHint scope={r.extrasScope} informed={r.extrasInformed} qty={r.qty}
-              fallback="Argolas, ímãs, parafusos, tinta, embalagem…" />
-          </div>
-          <div className="col-span-2 sm:col-span-1">
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <span className="label mb-0">Mão de obra / pós</span>
-              <ScopeToggle value={value.labor_scope} onChange={set('labor_scope')} />
-            </div>
-            <div className="flex gap-2">
+        </div>
+
+        {/* custos adicionais: cada um diz se vale por peça ou para o pedido todo */}
+        <div className="space-y-4 rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
+          <span className="label mb-0">Custos adicionais</span>
+
+          <CostLine
+            icon={<Package size={15} className="text-pink-400" />}
+            title="Extras"
+            hint={<ScopeHint scope={r.extrasScope} informed={r.extrasInformed} qty={r.qty}
+              fallback="Argolas, ímãs, parafusos, tinta, embalagem…" />}
+          >
+            <NumInput value={value.extras} onChange={set('extras')} prefix="R$" placeholder="0,00" className="min-w-32 flex-1" />
+            <ScopeToggle value={value.extras_scope} onChange={set('extras_scope')} />
+          </CostLine>
+
+          <CostLine
+            icon={<Wrench size={15} className="text-orange-400" />}
+            title="Mão de obra / pós"
+            action={
               <Segmented
                 size="sm"
-                className="shrink-0 self-center"
+                nowrap
                 value={value.labor_mode || 'valor'}
                 onChange={set('labor_mode')}
-                options={[{ value: 'valor', label: 'R$' }, { value: 'tempo', label: 'min' }]}
+                options={[{ value: 'valor', label: 'em R$' }, { value: 'tempo', label: 'em minutos' }]}
               />
-              {value.labor_mode === 'tempo' ? (
-                <NumInput value={value.labor_minutes} onChange={set('labor_minutes')} suffix="min" placeholder="0" className="flex-1" />
-              ) : (
-                <NumInput value={value.labor_value} onChange={set('labor_value')} prefix="R$" placeholder="0,00" className="flex-1" />
-              )}
-            </div>
-            <ScopeHint scope={r.laborScope} informed={r.laborInformed} qty={r.qty}
-              fallback={value.labor_mode === 'tempo' ? `a ${money(s.labor_hour)}/h (Configurações)` : 'Lixar, pintar, montar, remover suporte…'} />
-          </div>
+            }
+            hint={<ScopeHint scope={r.laborScope} informed={r.laborInformed} qty={r.qty}
+              fallback={value.labor_mode === 'tempo' ? `a ${money(s.labor_hour)}/h (Configurações)` : 'Lixar, pintar, montar, remover suporte…'} />}
+          >
+            {value.labor_mode === 'tempo' ? (
+              <NumInput value={value.labor_minutes} onChange={set('labor_minutes')} suffix="min" placeholder="0" className="min-w-32 flex-1" />
+            ) : (
+              <NumInput value={value.labor_value} onChange={set('labor_value')} prefix="R$" placeholder="0,00" className="min-w-32 flex-1" />
+            )}
+            <ScopeToggle value={value.labor_scope} onChange={set('labor_scope')} />
+          </CostLine>
         </div>
 
         <div className="rounded-xl border border-zinc-800 bg-zinc-950/60 p-3">
